@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOSS RC-505mkII - Professional Web Clone</title>
+    <style>
+        /* ================= დიზაინი და ანიმაციები ================= */
+        body { background-color: #030303; color: #ccc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; user-select: none; }
+        .device-body { background: linear-gradient(180deg, #151515 0%, #080808 100%); padding: 30px; border-radius: 12px; box-shadow: 0 40px 100px rgba(0,0,0,1), inset 0 2px 3px rgba(255,255,255,0.05); border: 2px solid #1a1a1a; display: flex; flex-direction: column; gap: 20px; width: 1200px; position: relative;}
+        
+        .top-panel { display: flex; justify-content: space-between; align-items: stretch; padding: 15px 20px; background: #0a0a0a; border-radius: 8px; border-bottom: 3px solid #000; border-top: 1px solid #222; box-shadow: inset 0 5px 15px rgba(0,0,0,0.5); }
+        
+        /* Knobs & Buttons */
+        .knob-large { width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle, #1a1a1a 40%, #050505 100%); border: 3px solid #000; position: relative; box-shadow: 0 10px 15px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.1s;}
+        .knob-large::after { content: ''; position: absolute; bottom: 10px; left: 15px; width: 4px; height: 12px; background: #fff; border-radius: 2px; transform: rotate(-45deg); }
+        .knob-small { width: 35px; height: 35px; border-radius: 50%; background: radial-gradient(circle, #222 40%, #050505 100%); border: 2px solid #000; position: relative; box-shadow: 0 5px 10px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.1s;}
+        .knob-small:active { transform: scale(0.95); border-color: #66b3ff; }
+        .knob-small::after { content: ''; position: absolute; top: 5px; left: 16px; width: 3px; height: 10px; background: #fff; border-radius: 2px; }
+        
+        .circle-btn-sm { width: 28px; height: 28px; border-radius: 50%; background: #111; border: 2px solid #444; color: #aaa; font-size: 10px; font-weight: bold; cursor: pointer; box-shadow: inset 0 0 5px rgba(0,0,0,1); display: flex; justify-content: center; align-items: center; transition: 0.1s;}
+        .circle-btn-sm:active { background: #000; border-color: #66b3ff; box-shadow: 0 0 10px #66b3ff; color: #fff;}
+        .pill-btn-sm { background: #0f0f0f; color: #888; border: 2px solid #333; padding: 5px 15px; border-radius: 15px; font-size: 10px; font-weight: bold; cursor: pointer; text-align: center; }
+        .pill-btn-sm:active { background: #222; border-color: #ccc; color: #fff;}
+        .fx-buttons { display: flex; gap: 8px; margin-top: 15px;}
+        .circle-btn { width: 38px; height: 38px; border-radius: 50%; background: #0a0a0a; border: 2px solid #444; color: #888; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: inset 0 0 8px rgba(0,0,0,1); transition: 0.1s; }
+        .circle-btn.active-input { border-color: #ff3333; color: #ff3333; box-shadow: 0 0 20px rgba(255,51,51,0.5), inset 0 0 5px #ff3333; text-shadow: 0 0 5px #ff3333;}
+        .circle-btn.active-track { border-color: #cc33ff; color: #cc33ff; box-shadow: 0 0 20px rgba(204,51,255,0.5), inset 0 0 5px #cc33ff; text-shadow: 0 0 5px #cc33ff;}
+        
+        .section-label { font-size: 11px; color: #ff3333; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; text-align: center;}
+        .label-text { font-size: 9px; color: #777; text-align: center; margin-top: 4px; font-weight: bold;}
+        
+        /* Panels */
+        .left-panel { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding-right: 20px;}
+        .center-panel { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 0 30px; border-left: 1px solid #1a1a1a; border-right: 1px solid #1a1a1a;}
+        .right-panel { display: flex; gap: 20px; padding-left: 20px;}
+        .screen-row { display: flex; align-items: center; gap: 15px; }
+        
+        /* LCD Screen */
+        .lcd-screen-container { display: flex; flex-direction: column; align-items: center; gap: 8px;}
+        .lcd-screen { background: #000511; border: 3px solid #000; border-radius: 4px; width: 280px; height: 95px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #66b3ff; box-shadow: 0 0 25px rgba(0, 100, 255, 0.2), inset 0 0 15px rgba(0,0,0,0.9); position: relative; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; opacity: 0.3; }
+        .lcd-text-overlay { position: absolute; z-index: 2; top: 5px; left: 10px; right: 10px; font-size: 12px; font-weight: bold; text-shadow: 0 0 5px rgba(0,0,0,1); pointer-events: none;}
+        .lcd-params { display: flex; justify-content: space-between; position: absolute; bottom: 5px; left: 10px; right: 10px; z-index: 2; font-size: 10px; color: #fff; text-align: center;}
+        
+        #boot-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index: 10; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: bold; letter-spacing: 2px; transition: opacity 0.5s;}
+
+        .screen-knobs { display: flex; justify-content: space-between; width: 260px; }
+        .nav-btns { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+        .nav-row { display: flex; gap: 10px; }
+        
+        .global-bottom-row { display: flex; gap: 20px; align-items: center; margin-top: 10px;}
+        .pill-btn-large { background: #111; color: #aaa; border: 2px solid #444; padding: 8px 18px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        .pill-btn-large:active { background: #333; color: #fff;}
+        .pill-btn-large.active-green { border-color: #33ff33; color: white; box-shadow: 0 0 15px rgba(51, 255, 51, 0.4); }
+        
+        /* Tracks Panel */
+        .tracks-panel { display: flex; justify-content: space-between; gap: 15px; }
+        .track { background: #0a0a0a; padding: 25px 15px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 160px; border: 1px solid #1a1a1a; box-shadow: inset 0 0 30px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.5); }
+        .track-top-btns { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .rect-btn { background: #111; color: #777; border: 2px solid #333; padding: 6px; border-radius: 15px; font-size: 10px; font-weight: bold; cursor: pointer; text-align: center; transition: 0.1s;}
+        .rect-btn.active { border-color: #ffcc00; color: #fff; box-shadow: 0 0 10px rgba(255,204,0,0.5); }
+        .fader-container { height: 160px; width: 45px; background: #030303; border-radius: 5px; border: 1px solid #222; display: flex; justify-content: center; padding: 10px 0; box-shadow: inset 0 10px 20px rgba(0,0,0,1); }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 6px; background: #000; cursor: pointer; }
+        
+        .stop-btn { width: 35px; height: 35px; border-radius: 50%; background: #151515; border: 2px solid #444; cursor: pointer; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; transition: 0.1s;}
+        .stop-btn::after { content: ''; width: 12px; height: 12px; background: #777; border-radius: 2px;}
+        .stop-btn:active { background: #000; border-color: #ff3333; }
+        .stop-btn:active::after { background: #ff3333; box-shadow: 0 0 10px #ff3333; }
+        
+        /* Main Button */
+        .main-btn { width: 90px; height: 90px; border-radius: 50%; background: #050505; border: 6px solid #1a1a1a; cursor: pointer; display: flex; justify-content: center; align-items: center; position: relative; transition: all 0.1s; box-shadow: 0 5px 15px rgba(0,0,0,0.8);}
+        .main-btn::after { content: '▶/●'; color: #333; font-size: 18px; display: flex; justify-content: center; align-items: center; width: 50px; height: 50px; border-radius: 50%; border: 2px solid #222; background: #0a0a0a; transition: 0.1s;}
+        .main-btn.recording { border-color: #ff3333; box-shadow: 0 0 35px rgba(255,51,51,0.7); }
+        .main-btn.recording::after { border-color: #ff3333; color: #ff3333; box-shadow: inset 0 0 20px rgba(255,51,51,0.5); }
+        .main-btn.playing { border-color: #33ff33; box-shadow: 0 0 35px rgba(51,255,51,0.7); }
+        .main-btn.playing::after { border-color: #33ff33; color: #33ff33; box-shadow: inset 0 0 20px rgba(51,255,51,0.5); }
+        .main-btn.overdub { border-color: #ffcc00; box-shadow: 0 0 35px rgba(255,204,0,0.7); }
+        .main-btn.overdub::after { border-color: #ffcc00; color: #ffcc00; box-shadow: inset 0 0 20px rgba(255,204,0,0.5); }
+        
+        #start-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;}
+        .start-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; background: #ff3333; border: none; border-radius: 30px; cursor: pointer; color: white; box-shadow: 0 0 20px rgba(255,51,51,0.5); transition: 0.2s;}
+        .start-btn:hover { background: #ff4444; transform: scale(1.05);}
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1 style="margin-bottom: 30px;">BOSS RC-505mkII Professional Simulator</h1>
+        <button class="start-btn" onclick="bootDevice()">POWER ON</button>
+        <p style="margin-top: 20px; color: #888; font-size: 12px;">* ლოკალური სერვერი (Live Server) და მიკროფონის წვდომა აუცილებელია აუდიო ძრავისთვის</p>
+    </div>
+
+    <div class="device-body">
+        <div class="top-panel">
+            
+            <div class="left-panel">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div class="knob-large" onclick="rotateAnim(this); navigateMenu('INPUT_FX')"></div>
+                    <div><button class="circle-btn-sm" onclick="navigateMenu('INPUT_FX')"></button><div class="label-text">EDIT</div></div>
+                </div>
+                <div style="width: 100%; height: 2px; background: #ff3333; margin-top: 15px;"></div>
+                <div class="section-label" style="margin-top: 5px;">INPUT FX</div>
+                <div class="fx-buttons">
+                    <button id="ifx-A" class="circle-btn" onclick="toggleInputFX('A')">A</button>
+                    <button id="ifx-B" class="circle-btn" onclick="toggleInputFX('B')">B</button>
+                    <button id="ifx-C" class="circle-btn" onclick="toggleInputFX('C')">C</button>
+                    <button id="ifx-D" class="circle-btn" onclick="toggleInputFX('D')">D</button>
+                </div>
+            </div>
+
+            <div class="center-panel">
+                <div class="screen-row">
+                    <div class="menu-btns">
+                        <button class="pill-btn-sm" onclick="navigateMenu('MENU')">MENU</button>
+                        <button class="pill-btn-sm" onclick="navigateMenu('LOOP')">LOOP</button>
+                    </div>
+                    <div class="lcd-screen-container">
+                        <div class="lcd-screen" id="lcd-display">
+                            <div id="boot-screen">BOSS<br><span style="font-size:8px; color:#888;">RC-505mkII Ver 1.3 DSP</span></div>
+                            <canvas id="visualizer"></canvas>
+                            <div class="lcd-text-overlay" id="lcd-title"></div>
+                            <div class="lcd-params" id="lcd-params">
+                                <div id="param-1" style="width:25%;"></div>
+                                <div id="param-2" style="width:25%;"></div>
+                                <div id="param-3" style="width:25%;"></div>
+                                <div id="param-4" style="width:25%;"></div>
+                            </div>
+                        </div>
+                        <div class="screen-knobs">
+                            <div class="knob-small" onclick="rotateAnim(this); adjustParam(1)"></div>
+                            <div class="knob-small" onclick="rotateAnim(this); adjustParam(2)"></div>
+                            <div class="knob-small" onclick="rotateAnim(this); adjustParam(3)"></div>
+                            <div class="knob-small" onclick="rotateAnim(this); adjustParam(4)"></div>
+                        </div>
+                    </div>
+                    <div class="nav-btns">
+                        <div class="nav-row">
+                            <div><div class="label-text" style="margin-top:0;">EXIT</div><button class="circle-btn-sm" onclick="navigateMenu('HOME')"></button></div>
+                            <div><div class="label-text" style="margin-top:0;">ENTER</div><button class="circle-btn-sm" onclick="executeMenuAction()"></button></div>
+                        </div>
+                        <div class="label-text" style="margin-top:2px; cursor:pointer; color:#ffcc00;" onclick="saveMemoryWRITE()">[ WRITE ]</div>
+                        <div class="nav-row" style="margin-top: 5px;">
+                            <button class="circle-btn-sm" onclick="navArrow(-1)">◀</button>
+                            <button class="circle-btn-sm" onclick="navArrow(1)">▶</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="global-bottom-row">
+                    <button class="pill-btn-large" id="all-start-stop" onclick="toggleAllPlay()">ALL START/STOP</button>
+                    <button class="pill-btn-large" onclick="undoRedo()">UNDO/REDO</button>
+                    <div style="width: 1px; height: 30px; background: #333; margin: 0 10px;"></div>
+                    <button class="pill-btn-large" onclick="handleTapTempo()">TAP TEMPO</button>
+                    <button class="pill-btn-large" id="rhythm-btn" onclick="toggleRhythm()">START/STOP (RHYTHM)</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div style="text-align: center;"><div class="label-text" style="margin-top:0;">OUTPUT</div><div class="knob-small" onclick="rotateAnim(this); adjustOutputVolume()"></div></div>
+                    <div style="margin-top: auto;"><button class="circle-btn-sm" onclick="navigateMenu('RHYTHM')"></button><div class="label-text">EDIT</div><div class="section-label" style="margin-top: 5px;">RHYTHM</div></div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                    <div class="knob-large" style="transform: rotate(45deg);" onclick="rotateAnim(this); navigateMenu('TRACK_FX')"></div>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-top:10px;"><button class="circle-btn-sm" onclick="navigateMenu('TRACK_FX')"></button><div class="label-text">EDIT</div></div>
+                    <div style="width: 100%; height: 2px; background: #ff3333; margin-top: 10px;"></div>
+                    <div class="section-label" style="margin-top: 5px;">TRACK FX</div>
+                    <div class="fx-buttons">
+                        <button id="tfx-A" class="circle-btn" onclick="toggleTrackFX('A')">A</button>
+                        <button id="tfx-B" class="circle-btn" onclick="toggleTrackFX('B')">B</button>
+                        <button id="tfx-C" class="circle-btn" onclick="toggleTrackFX('C')">C</button>
+                        <button id="tfx-D" class="circle-btn" onclick="toggleTrackFX('D')">D</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tracks-panel" id="tracks-container"></div>
+    </div>
+
+    <script>
+        /* ================= 0. VISUAL HELPERS ================= */
+        function rotateAnim(el) {
+            let currentRot = el.style.transform.replace(/[^0-9\-.,]/g, '') || 0;
+            el.style.transform = `rotate(${Number(currentRot) + 30}deg)`;
+        }
+
+        async function bootDevice() {
+            document.getElementById('start-overlay').style.display = 'none';
+            await setupAudio(); 
+            
+            setTimeout(() => {
+                const bootScreen = document.getElementById('boot-screen');
+                if(bootScreen) {
+                    bootScreen.style.opacity = '0';
+                    setTimeout(() => { bootScreen.style.display = 'none'; loadMemory(); updateLCD(); }, 500);
+                }
+            }, 1500);
+        }
+
+        /* ================= 1. DYNAMIC MENU ENGINE (ALL 49/53 FX) ================= */
+        const MENU_CONFIG = {
+            'HOME': [ { title: "01 Web Studio", isHome: true } ],
+            'TRACK': [ 
+                { title: "TRACK {T} [1/4]", p: ["REVERSE", "1-SHOT", "PAN", "DUB MODE"], k: ["trkRev", "trk1Shot", "trkPan", "trkDub"] },
+                { title: "TRACK {T} [2/4]", p: ["PLAY MODE", "START MOD", "STOP MOD", "MEASURE"], k: ["trkPly", "trkStrt", "trkStp", "trkMeas"] },
+                { title: "TRACK {T} [3/4]", p: ["LOOP SYNC", "TEMPO SYNC", "INPUT", "OUTPUT"], k: ["trkLSync", "trkTSync", "trkIn", "trkOut"] },
+                { title: "TRACK {T} [4/4]", p: ["BOUNCE IN", "FX A", "FX B", "FX C"], k: ["trkBnce", "trkFxA", "trkFxB", "trkFxC"] }
+            ],
+            'RHYTHM': [
+                { title: "RHYTHM [1/3]", p: ["LEVEL", "PATTERN", "VARIATN", "KIT"], k: ["rhyLvl", "rhyPat", "rhyVar", "rhyKit"] },
+                { title: "RHYTHM [2/3]", p: ["BEAT", "START", "STOP", "REC COUNT"], k: ["rhyBeat", "rhyStrt", "rhyStp", "rhyRecC"] },
+                { title: "RHYTHM [3/3]", p: ["PLY COUNT", "FILL", "PART1", "PART2"], k: ["rhyPlyC", "rhyFill", "rhyP1", "rhyP2"] }
+            ],
+            'INPUT_FX': [
+                { title: "INPUT FX [1/2]", p: ["BANK", "A: TYPE", "B: TYPE", "C: TYPE"], k: ["ifxBank", "ifxAType", "ifxBType", "ifxCType"] },
+                { title: "INPUT FX [2/2]", p: ["D: TYPE", "INSERT", "STEP RATE", "SYNC"], k: ["ifxDType", "ifxIns", "ifxStep", "ifxSync"] }
+            ],
+            'TRACK_FX': [
+                { title: "TRACK FX [1/2]", p: ["BANK", "A: TYPE", "B: TYPE", "C: TYPE"], k: ["tfxBank", "tfxAType", "tfxBType", "tfxCType"] },
+                { title: "TRACK FX [2/2]", p: ["D: TYPE", "INSERT", "STEP RATE", "SYNC"], k: ["tfxDType", "tfxIns", "tfxStep", "tfxSync"] }
+            ],
+            'LOOP': [
+                { title: "REC/PLAY [1/2]", p: ["REC ACT", "QUANTIZE", "AUTO REC", "AR SENS"], k: ["lpRecAct", "lpQuant", "lpARec", "lpARSens"] },
+                { title: "REC/PLAY [2/2]", p: ["PLY MODE", "ALL START", "ALL STOP", "FADE TIME"], k: ["lpPlyMod", "lpAStrt", "lpAStp", "lpFade"] }
+            ],
+            'MENU': [
+                { title: "SYSTEM [1/3]", p: ["LCD CONT", "DISPLAY", "AUTO OFF", "KNOB LCK"], k: ["sysLcd", "sysDisp", "sysAOff", "sysKLock"] },
+                { title: "INPUT/OUT [2/3]", p: ["MIC1 IN", "MIC2 IN", "INST IN", "MAIN OUT"], k: ["sysMic1", "sysMic2", "sysInst", "sysMOut"] },
+                { title: "MIDI/USB [3/3]", p: ["MIDI RX", "MIDI TX", "USB MODE", "ROUTING"], k: ["sysMidRx", "sysMidTx", "sysUsb", "sysRout"] }
+            ]
+        };
+
+        const ALL_INPUT_FX = [
+            "LPF", "HPF", "BPF", "PHASER", "FLANGER", "RING.MOD", "G2B", "SYNTH", 
+            "SUSTAINER", "LO-FI", "RADIO", "AUTO RIFF", "PITCH BEND", "ROBOT", 
+            "SLOW GEAR", "ELECTRIC", "TRANSPOSE", "HRM MANUAL", "VOCODER", 
+            "HRM AUTO", "OSC VOC", "OSC BOT", "DIST", "FUZZ", "CRUNCH", "OVERDRIVE", 
+            "DYNAMICS", "COMPRESSOR", "LIMITER", "PREAMP", "EQ", "ISOLATOR", 
+            "MANUAL PAN", "STEREO ENHANCE", "OCTAVE", "TREMOLO", "AUTO PAN", "VIBRATO", 
+            "PAT SLICER", "PAN DELAY", "STEP SLICER", "REV DELAY", "DELAY", 
+            "MOD DELAY", "TAPE ECHO1", "TAPE ECHO2", "TWIST", "ROLL1", "ROLL2", 
+            "GRANULAR", "WARP", "FREEZE", "GATE REVERB", "CHORUS", "REV REVERB", "REVERB"
+        ];
+
+        const TRACK_ONLY_FX = ["BEAT SCAT", "BEAT REPEAT", "BEAT SHIFT", "VINYL FLICK"];
+        const ALL_TRACK_FX = ALL_INPUT_FX.concat(TRACK_ONLY_FX);
+
+        const PARAM_OPTIONS = {
+            trkRev: ["OFF", "ON"], trk1Shot: ["OFF", "ON"], trkPan: ["L50", "L25", "CENTER", "R25", "R50"], trkDub: ["OVERDUB", "REPLACE1", "REPLACE2"],
+            trkPly: ["LOOP", "ONE-SHOT"], trkStrt: ["IMMED", "FADE IN"], trkStp: ["IMMED", "FADE OUT", "LOOP END"], trkMeas: ["AUTO", "FREE", "1", "2", "4", "8"],
+            trkLSync: ["ON", "OFF"], trkTSync: ["ON", "OFF"], trkIn: ["ALL", "MIC1", "INST1"], trkOut: ["MAIN", "SUB1", "SUB2"],
+            trkBnce: ["OFF", "ON"], trkFxA: ["OFF", "ON"], trkFxB: ["OFF", "ON"], trkFxC: ["OFF", "ON"],
+            
+            rhyLvl: Array.from({length: 101}, (_,i)=>i), 
+            rhyPat: ["STUDIO", "LIVE", "ROCK", "METAL", "JAZZ", "LATIN", "DANCE"], rhyVar: ["A", "B"], rhyKit: ["STUDIO", "LIVE", "LIGHT", "HEAVY", "ROCK", "JAZZ"],
+            rhyBeat: ["2/4", "3/4", "4/4", "5/4", "6/4", "7/4"], rhyStrt: ["LOOP STRT", "REC END", "BEFORE LP"], rhyStp: ["LOOP STOP", "REC END", "OFF"],
+            rhyRecC: ["OFF", "1 MEAS", "2 MEAS"], rhyPlyC: ["OFF", "1 MEAS"], rhyFill: ["OFF", "ON"], rhyP1: ["ON", "OFF"], rhyP2: ["ON", "OFF"],
+
+            ifxBank: ["A", "B", "C", "D"], 
+            ifxAType: ALL_INPUT_FX, ifxBType: ALL_INPUT_FX, ifxCType: ALL_INPUT_FX, ifxDType: ALL_INPUT_FX, 
+            ifxIns: ["ALL", "MIC1", "INST"], ifxStep: ["OFF", "ON"], ifxSync: ["ON", "OFF"],
+
+            tfxBank: ["A", "B", "C", "D"], 
+            tfxAType: ALL_TRACK_FX, tfxBType: ALL_TRACK_FX, tfxCType: ALL_TRACK_FX, tfxDType: ALL_TRACK_FX, 
+            tfxIns: ["ALL", "TRK1", "TRK2", "TRK3", "TRK4", "TRK5"], tfxStep: ["OFF", "ON"], tfxSync: ["ON", "OFF"],
+
+            lpRecAct: ["REC>PLAY", "REC>DUB"], lpQuant: ["OFF", "MEASURE", "BEAT"], lpARec: ["OFF", "ON"], lpARSens: ["50", "60", "70", "80", "90", "100"],
+            lpPlyMod: ["MULTI", "SINGLE"], lpAStrt: ["ALL", "TRK1-3"], lpAStp: ["ALL", "TRK1-3"], lpFade: ["1 MEAS", "2 MEAS", "4 MEAS"],
+
+            sysLcd: ["1", "2", "3", "4", "5"], sysDisp: ["NAME/BEAT", "STATUS"], sysAOff: ["ON", "OFF"], sysKLock: ["OFF", "ON"],
+            sysMic1: ["NORMAL", "PHANTOM"], sysMic2: ["NORMAL", "PHANTOM"], sysInst: ["STEREO", "MONO"], sysMOut: ["STEREO", "MONO"],
+            sysMidRx: ["CH1", "CH2", "OMNI"], sysMidTx: ["CH1", "CH2", "RX"], sysUsb: ["AUD/MID", "STORAGE"], sysRout: ["MIX", "PARALEL"]
+        };
+
+        let sysData = {};
+        for(let key in PARAM_OPTIONS) {
+            if(key.startsWith('trk')) { sysData[key] = [0,0,0,0,0];
+            } else { sysData[key] = 0; }
+        }
+        sysData['trkPan'] = [2,2,2,2,2]; 
+        sysData['rhyLvl'] = 50;
+        
+        // Initial FX defaults to make testing fun right away
+        sysData['ifxAType'] = ALL_INPUT_FX.indexOf("DIST"); 
+        sysData['ifxBType'] = ALL_INPUT_FX.indexOf("DELAY"); 
+        sysData['ifxCType'] = ALL_INPUT_FX.indexOf("CHORUS"); 
+        sysData['ifxDType'] = ALL_INPUT_FX.indexOf("LPF"); 
+        
+        sysData['tfxAType'] = ALL_TRACK_FX.indexOf("REVERB"); 
+        sysData['tfxBType'] = ALL_TRACK_FX.indexOf("FLANGER"); 
+        sysData['tfxCType'] = ALL_TRACK_FX.indexOf("TREMOLO"); 
+        sysData['tfxDType'] = ALL_TRACK_FX.indexOf("ISOLATOR"); 
+
+        let currentMemory = 1;
+        let menuState = { category: 'HOME', page: 0, track: 0 };
+        let bpm = 120.0;
+        
+        function updateLCD() {
+            const title = document.getElementById('lcd-title');
+            const pages = MENU_CONFIG[menuState.category];
+            const pageDef = pages[menuState.page];
+            
+            if(pageDef.isHome) {
+                let memStr = currentMemory < 10 ? `0${currentMemory}` : currentMemory;
+                title.innerHTML = `${memStr} Web Studio<br><span style="color:#33ff33; font-size:10px;">MIC: READY | BPM: ${bpm.toFixed(1)}</span>`;
+                for(let i=1; i<=4; i++) document.getElementById(`param-${i}`).innerHTML = '';
+                return;
+            }
+
+            let tTitle = pageDef.title.replace('{T}', menuState.track + 1);
+            title.innerHTML = `[${tTitle}]<br><span style="font-size:10px; color:#aaa;">${pageDef.p.join(' | ')}</span>`;
+
+            for(let i=0; i<4; i++) {
+                let key = pageDef.k[i];
+                let pDiv = document.getElementById(`param-${i+1}`);
+                if(!key) { pDiv.innerHTML = ''; continue; }
+                
+                let valIdx = key.startsWith('trk') ? sysData[key][menuState.track] : sysData[key];
+                if(valIdx === undefined || valIdx < 0 || valIdx >= PARAM_OPTIONS[key].length) valIdx = 0;
+                let val = PARAM_OPTIONS[key][valIdx];
+                pDiv.innerHTML = `▼<br>${val}`;
+            }
+        }
+
+        function navigateMenu(cat, trackIdx = 0) {
+            menuState.category = cat;
+            menuState.page = 0; menuState.track = trackIdx; updateLCD();
+        }
+
+        function navArrow(dir) {
+            if(menuState.category === 'HOME') {
+                currentMemory += dir;
+                if(currentMemory < 1) currentMemory = 99;
+                if(currentMemory > 99) currentMemory = 1;
+                loadMemory(); updateLCD();
+                return;
+            }
+            const maxPages = MENU_CONFIG[menuState.category].length - 1;
+            menuState.page += dir;
+            if(menuState.page < 0) menuState.page = maxPages;
+            if(menuState.page > maxPages) menuState.page = 0;
+            updateLCD();
+        }
+
+        function adjustParam(knobIdx) {
+            if(menuState.category === 'HOME') return;
+            const pageDef = MENU_CONFIG[menuState.category][menuState.page];
+            const key = pageDef.k[knobIdx - 1];
+            if(!key) return;
+            
+            const maxLen = PARAM_OPTIONS[key].length;
+            if(key.startsWith('trk')) {
+                sysData[key][menuState.track] = (sysData[key][menuState.track] + 1) % maxLen;
+                if(key === 'trkPan' && trackPanners[menuState.track]) {
+                    let panMap = [-1, -0.5, 0, 0.5, 1];
+                    try { trackPanners[menuState.track].pan.value = panMap[sysData[key][menuState.track]]; } catch(e){}
+                }
+            } else {
+                sysData[key] = (sysData[key] + 1) % maxLen;
+            }
+            updateLCD();
+            
+            if(key.startsWith('ifx')) {
+                let activeBtn = document.querySelector('.circle-btn.active-input');
+                if (activeBtn) toggleInputFX(activeBtn.id.replace('ifx-',''), true); 
+            }
+            if(key.startsWith('tfx')) {
+                let activeBtn = document.querySelector('.circle-btn.active-track');
+                if (activeBtn) toggleTrackFX(activeBtn.id.replace('tfx-',''), true); 
+            }
+        }
+
+        function saveMemoryWRITE() {
+            const title = document.getElementById('lcd-title');
+            const oldTitle = title.innerHTML;
+            title.innerHTML = `> EXECUTING... <`;
+            
+            const memoryKey = `RC505_Memory_${currentMemory}`;
+            localStorage.setItem(memoryKey, JSON.stringify({ bpm: bpm, sysData: sysData }));
+
+            for(let i = 0; i < 5; i++) {
+                if(audioChunks[i] && audioChunks[i].length > 0) {
+                    const blob = new Blob(audioChunks[i], { type: 'audio/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `Memory_${currentMemory < 10 ? '0'+currentMemory : currentMemory}_Track_${i + 1}.webm`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
+                }
+            }
+
+            setTimeout(() => {
+                title.innerHTML = `MEMORY ${currentMemory} SAVED!`;
+                setTimeout(() => { title.innerHTML = oldTitle; updateLCD(); }, 1500);
+            }, 1000);
+        }
+
+        function loadMemory() {
+            try {
+                const memoryKey = `RC505_Memory_${currentMemory}`;
+                const saved = localStorage.getItem(memoryKey);
+                if(saved) {
+                    const parsed = JSON.parse(saved);
+                    bpm = parsed.bpm || 120.0;
+                    if(parsed.sysData) {
+                        for(let k in parsed.sysData) {
+                            if(sysData[k] !== undefined) sysData[k] = parsed.sysData[k];
+                        }
+                    }
+                }
+            } catch(e) { console.error("Memory load failed", e); }
+        }
+
+        function executeMenuAction() {
+            const title = document.getElementById('lcd-title');
+            const old = title.innerHTML; title.innerHTML = `> EXECUTING... <`;
+            setTimeout(() => { title.innerHTML = old; }, 1000);
+        }
+
+        /* ================= 2. TRACK UI GENERATOR ================= */
+        const tracksContainer = document.getElementById('tracks-container');
+        for (let i = 0; i < 5; i++) {
+            tracksContainer.innerHTML += `
+                <div class="track" id="track-${i}">
+                    <div class="track-top-btns">
+                        <div class="rect-btn" id="tfx-btn-${i}" onclick="toggleRouteTrackFX(${i})" title="Route to Track FX">FX</div>
+                        <div class="rect-btn" style="border-color:#33ff33; color:white;" onclick="navigateMenu('TRACK', ${i})">TRACK</div>
+                    </div>
+                    <div class="fader-container">
+                        <input type="range" orient="vertical" min="0" max="1" step="0.01" value="0.8" oninput="updateFader(${i}, this.value)">
+                    </div>
+                    <div class="stop-btn" onpointerdown="handleStopDown(${i})" onpointerup="handleStopUp(${i})" onpointerleave="handleStopUp(${i})" title="Stop / Clear (Hold 2s)"></div>
+                    <button class="main-btn" id="btn-${i}" onclick="handleMainButton(${i})"></button>
+                    <div style="color:#555; font-weight:bold; font-size: 20px;">${i + 1}</div>
+                </div>
+            `;
+        }
+
+        /* ================= 3. ADVANCED PRO AUDIO & FX DSP ENGINE ================= */
+        let audioCtx, masterGain;
+        let outputVol = 1.0;
+        
+        let tracksData = [[], [], [], [], []]; 
+        let trackHistory = [[], [], [], [], []]; 
+        let trackStates = ['empty', 'empty', 'empty', 'empty', 'empty'];
+        
+        let players = [[], [], [], [], []];
+        let recorders = [null, null, null, null, null];
+        let audioChunks = [[], [], [], [], []];
+        
+        let trackGains = [], trackPanners = [], trackFxSends = [];
+        let micStream = null, isSetup = false;
+        
+        // DSP Routing Nodes
+        let micInputNode, preInFxNode, postInFxNode;
+        let trackFxMixer, preTrkFxNode, postTrkFxNode;
+        let activeInputFxNode = null;
+        let activeTrackFxNode = null;
+
+        function createEffectInstance(type) {
+            let inNode = audioCtx.createGain();
+            let outNode = audioCtx.createGain();
+            
+            try {
+                function makeDistortionCurve(amount) {
+                    let k = amount, n_samples = 44100, curve = new Float32Array(n_samples), deg = Math.PI / 180, i = 0, x;
+                    for ( ; i < n_samples; ++i ) { x = i * 2 / n_samples - 1; curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) ); }
+                    return curve;
+                }
+
+                if (type === 'LPF') {
+                    let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600; filter.Q.value = 5;
+                    inNode.connect(filter); filter.connect(outNode);
+                } else if (type === 'HPF') {
+                    let filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 2000; filter.Q.value = 5;
+                    inNode.connect(filter); filter.connect(outNode);
+                } else if (type === 'BPF') {
+                    let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1000; filter.Q.value = 5;
+                    inNode.connect(filter); filter.connect(outNode);
+                } else if (type === 'EQ') {
+                    let filter = audioCtx.createBiquadFilter(); filter.type = 'peaking'; filter.frequency.value = 1000; filter.gain.value = 8;
+                    inNode.connect(filter); filter.connect(outNode);
+                } else if (type === 'DELAY' || type === 'TAPE ECHO1' || type === 'TAPE ECHO2' || type === 'PAN DELAY' || type === 'MOD DELAY') {
+                    let delay = audioCtx.createDelay(5.0); delay.delayTime.value = 0.4;
+                    let fb = audioCtx.createGain(); fb.gain.value = 0.5;
+                    inNode.connect(delay); inNode.connect(outNode); // Dry
+                    delay.connect(fb); fb.connect(delay); delay.connect(outNode); // Wet
+                    if(type.startsWith('TAPE')) {
+                        let tapeFilter = audioCtx.createBiquadFilter(); tapeFilter.type = 'lowpass'; tapeFilter.frequency.value = 1500;
+                        delay.disconnect(); delay.connect(tapeFilter); tapeFilter.connect(fb); tapeFilter.connect(outNode);
+                    }
+                } else if (['DIST', 'FUZZ', 'OVERDRIVE', 'CRUNCH'].includes(type) || type === 'DYNAMICS' || type === 'PREAMP') {
+                    let shaper = audioCtx.createWaveShaper(); 
+                    let amt = type === 'FUZZ' ? 800 : type === 'DIST' ? 400 : 50;
+                    shaper.curve = makeDistortionCurve(amt); shaper.oversample = '4x';
+                    inNode.connect(shaper); shaper.connect(outNode);
+                } else if (type === 'TREMOLO' || type === 'AUTO PAN') {
+                    let tremOsc = audioCtx.createOscillator(); tremOsc.frequency.value = 6;
+                    let tremGain = audioCtx.createGain(); tremGain.gain.value = 0;
+                    tremOsc.connect(tremGain.gain); tremOsc.start();
+                    inNode.connect(tremGain); tremGain.connect(outNode);
+                } else if (type === 'RING.MOD') {
+                    let ringOsc = audioCtx.createOscillator(); ringOsc.frequency.value = 400;
+                    let ringGain = audioCtx.createGain(); ringGain.gain.value = 0;
+                    ringOsc.connect(ringGain.gain); ringOsc.start();
+                    inNode.connect(ringGain); ringGain.connect(outNode);
+                } else if (type === 'CHORUS' || type === 'FLANGER' || type === 'VIBRATO') {
+                    let delay = audioCtx.createDelay(); delay.delayTime.value = type === 'CHORUS' ? 0.03 : 0.005;
+                    let lfo = audioCtx.createOscillator(); lfo.frequency.value = type === 'CHORUS' ? 1.5 : 0.5;
+                    let lfoGain = audioCtx.createGain(); lfoGain.gain.value = type === 'CHORUS' ? 0.005 : 0.002;
+                    lfo.connect(lfoGain); lfoGain.connect(delay.delayTime); lfo.start();
+                    inNode.connect(delay); inNode.connect(outNode); // Dry
+                    delay.connect(outNode); // Wet
+                    if(type === 'FLANGER') {
+                        let fb = audioCtx.createGain(); fb.gain.value = 0.8;
+                        delay.connect(fb); fb.connect(delay);
+                    }
+                } else if (type === 'COMPRESSOR' || type === 'LIMITER') {
+                    let comp = audioCtx.createDynamicsCompressor(); 
+                    comp.threshold.value = type === 'LIMITER' ? -10 : -30; comp.ratio.value = type === 'LIMITER' ? 20 : 12;
+                    inNode.connect(comp); comp.connect(outNode);
+                } else if (type === 'REVERB' || type === 'GATE REVERB' || type === 'REV REVERB') {
+                    let length = Math.floor(audioCtx.sampleRate * 2.5);
+                    let impulse = audioCtx.createBuffer(2, length, audioCtx.sampleRate);
+                    let left = impulse.getChannelData(0); let right = impulse.getChannelData(1);
+                    for (let i = 0; i < length; i++) { 
+                        left[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 3); right[i] = left[i]; 
+                    }
+                    let convolver = audioCtx.createConvolver(); convolver.buffer = impulse;
+                    inNode.connect(convolver); inNode.connect(outNode); // Dry
+                    convolver.connect(outNode); // Wet
+                } else {
+                    inNode.connect(outNode); // Absolute failsafe bypass
+                }
+            } catch(e) {
+                console.warn("FX Error (Fallback used):", e);
+                inNode.connect(outNode);
+            }
+            return { in: inNode, out: outNode };
+        }
+
+        async function setupAudio() {
+            if (isSetup) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
+                
+                preInFxNode = audioCtx.createGain();
+                postInFxNode = audioCtx.createGain();
+                preInFxNode.connect(postInFxNode); 
+                
+                trackFxMixer = audioCtx.createGain();
+                preTrkFxNode = audioCtx.createGain();
+                postTrkFxNode = audioCtx.createGain();
+                trackFxMixer.connect(preTrkFxNode);
+                preTrkFxNode.connect(postTrkFxNode); 
+                postTrkFxNode.connect(masterGain);
+
+                for(let i=0; i<5; i++) {
+                    trackGains[i] = audioCtx.createGain(); trackGains[i].gain.value = 0.8;
+                    trackPanners[i] = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createGain();
+                    
+                    trackGains[i].connect(trackPanners[i]);
+                    trackPanners[i].connect(masterGain);
+                }
+
+                try {
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    micInputNode = audioCtx.createMediaStreamSource(micStream);
+                    micInputNode.connect(preInFxNode);
+                } catch (err) { 
+                    console.warn("მიკროფონზე წვდომა შეზღუდულია: ", err);
+                    setTimeout(()=>alert("მიკროფონზე წვდომა დაბლოკილია! აპარატი იმუშავებს, მაგრამ ხმას ვერ ჩაწერთ."), 500);
+                }
+
+                const analyzer = audioCtx.createAnalyser();
+                postInFxNode.connect(analyzer); 
+                postInFxNode.connect(masterGain); 
+                drawVisualizer(analyzer);
+
+                let recDest = audioCtx.createMediaStreamDestination();
+                postInFxNode.connect(recDest); 
+
+                for(let i=0; i<5; i++) {
+                    if(typeof MediaRecorder !== 'undefined') {
+                        recorders[i] = new MediaRecorder(recDest.stream);
+                        recorders[i].ondataavailable = e => audioChunks[i].push(e.data);
+                        recorders[i].onstop = () => saveLoop(i);
+                    }
+                }
+                isSetup = true;
+            } catch(e) {
+                console.error("Audio Setup Error:", e);
+                alert("აუდიო სისტემის ჩატვირთვა ვერ მოხერხდა.");
+                isSetup = true; 
+            }
+        }
+
+        /* === FX ROUTING LOGIC === */
+        let activeIfxBtn = null;
+        function toggleInputFX(btnId, forceRefresh = false) {
+            const btns = ['A','B','C','D'];
+            let fxTypeParam = `ifx${btnId}Type`;
+            let selectedFxIndex = sysData[fxTypeParam] || 0;
+            let selectedFxName = PARAM_OPTIONS[fxTypeParam][selectedFxIndex];
+
+            preInFxNode.disconnect();
+            if(activeInputFxNode && activeInputFxNode.out) {
+                activeInputFxNode.out.disconnect();
+            }
+            
+            let toggledOff = (activeIfxBtn === btnId) && !forceRefresh;
+
+            btns.forEach(id => {
+                const el = document.getElementById(`ifx-${id}`);
+                if(id === btnId && !toggledOff) {
+                    el.classList.add('active-input');
+                    activeIfxBtn = btnId;
+                    
+                    activeInputFxNode = createEffectInstance(selectedFxName);
+                    preInFxNode.connect(activeInputFxNode.in);
+                    activeInputFxNode.out.connect(postInFxNode);
+                } else {
+                    el.classList.remove('active-input');
+                }
+            });
+
+            if(toggledOff) {
+                activeIfxBtn = null; activeInputFxNode = null;
+                preInFxNode.connect(postInFxNode); 
+            }
+        }
+
+        let activeTfxBtn = null;
+        function toggleTrackFX(btnId, forceRefresh = false) {
+            const btns = ['A','B','C','D'];
+            let fxTypeParam = `tfx${btnId}Type`;
+            let selectedFxIndex = sysData[fxTypeParam] || 0;
+            let selectedFxName = PARAM_OPTIONS[fxTypeParam][selectedFxIndex];
+
+            preTrkFxNode.disconnect();
+            if(activeTrackFxNode && activeTrackFxNode.out) {
+                activeTrackFxNode.out.disconnect();
+            }
+            
+            let toggledOff = (activeTfxBtn === btnId) && !forceRefresh;
+
+            btns.forEach(id => {
+                const el = document.getElementById(`tfx-${id}`);
+                if(id === btnId && !toggledOff) {
+                    el.classList.add('active-track');
+                    activeTfxBtn = btnId;
+                    
+                    activeTrackFxNode = createEffectInstance(selectedFxName);
+                    preTrkFxNode.connect(activeTrackFxNode.in);
+                    activeTrackFxNode.out.connect(postTrkFxNode);
+                } else {
+                    el.classList.remove('active-track');
+                }
+            });
+
+            if(toggledOff) {
+                activeTfxBtn = null; activeTrackFxNode = null;
+                preTrkFxNode.connect(postTrkFxNode); 
+            }
+        }
+
+        function toggleRouteTrackFX(i) {
+            const btn = document.getElementById(`tfx-btn-${i}`);
+            let isActive = btn.classList.toggle('active');
+            
+            trackPanners[i].disconnect(); 
+            if(isActive) {
+                trackPanners[i].connect(trackFxMixer); 
+            } else {
+                trackPanners[i].connect(masterGain); 
+            }
+        }
+
+        /* === RECORDING STATE MACHINE === */
+        async function handleMainButton(i) {
+            if (!micStream) {
+                alert("მიკროფონი არ არის დაკავშირებული. ჩაწერა შეუძლებელია.");
+                return;
+            }
+            const btn = document.getElementById(`btn-${i}`);
+
+            if (trackStates[i] === 'empty' || trackStates[i] === 'stopped') {
+                audioChunks[i] = []; recorders[i].start(); 
+                trackStates[i] = 'recording'; btn.className = 'main-btn recording'; 
+            } else if (trackStates[i] === 'recording') {
+                recorders[i].stop(); lastRecordedTrack = i;
+            } else if (trackStates[i] === 'playing') {
+                audioChunks[i] = []; recorders[i].start();
+                trackStates[i] = 'overdub'; btn.className = 'main-btn overdub'; 
+            } else if (trackStates[i] === 'overdub') {
+                recorders[i].stop(); lastRecordedTrack = i;
+            }
+        }
+
+        async function saveLoop(i) {
+            const blob = new Blob(audioChunks[i], { type: 'audio/ogg; codecs=opus' });
+            const arrayBuffer = await blob.arrayBuffer(); 
+            const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
+            
+            tracksData[i].push(decodedData); trackHistory[i].push([...tracksData[i]]);
+            
+            trackStates[i] = 'playing'; document.getElementById(`btn-${i}`).className = 'main-btn playing'; 
+            startPlayback(i);
+        }
+
+        function startPlayback(i) {
+            stopPlaybackNodes(i); 
+            if (tracksData[i].length === 0) return;
+            
+            let is1Shot = PARAM_OPTIONS['trk1Shot'][sysData['trk1Shot'][i]] === "ON";
+            let isReverse = PARAM_OPTIONS['trkRev'][sysData['trkRev'][i]] === "ON";
+
+            tracksData[i].forEach(buffer => {
+                let source = audioCtx.createBufferSource(); 
+                
+                if (isReverse) {
+                    // სრული Reverse ფუნქციონალი - ბუფერის შემოტრიალება
+                    let revBuffer = audioCtx.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+                    for (let c = 0; c < buffer.numberOfChannels; c++) {
+                        let dest = revBuffer.getChannelData(c);
+                        let src = buffer.getChannelData(c);
+                        for (let j = 0; j < buffer.length; j++) dest[j] = src[buffer.length - 1 - j];
+                    }
+                    source.buffer = revBuffer;
+                } else {
+                    source.buffer = buffer; 
+                }
+
+                source.loop = !is1Shot; source.connect(trackGains[i]); source.start();
+                players[i].push(source);
+                if(is1Shot) { source.onended = () => { if(trackStates[i] === 'playing') stopTrack(i, true); }; }
+            });
+        }
+
+        function stopPlaybackNodes(i) {
+            players[i].forEach(src => { try { src.stop(); } catch(e){} }); players[i] = [];
+        }
+
+        function stopTrack(i, autoStop = false) {
+            const btn = document.getElementById(`btn-${i}`);
+            if (trackStates[i] === 'recording' || trackStates[i] === 'overdub') recorders[i].stop();
+            stopPlaybackNodes(i);
+            trackStates[i] = tracksData[i].length > 0 ? 'stopped' : 'empty';
+            btn.className = 'main-btn'; 
+        }
+
+        /* === CLEAR TRACK (LONG PRESS) === */
+        let holdTimers = []; let isHolding = [];
+        function handleStopDown(i) {
+            isHolding[i] = true;
+            holdTimers[i] = setTimeout(() => { if (isHolding[i]) { clearTrack(i); isHolding[i] = false; } }, 2000);
+        }
+        function handleStopUp(i) {
+            if (isHolding[i]) { clearTimeout(holdTimers[i]); isHolding[i] = false; stopTrack(i); }
+        }
+        function clearTrack(i) {
+            stopTrack(i); tracksData[i] = []; trackHistory[i] = []; trackStates[i] = 'empty';
+            document.getElementById(`btn-${i}`).className = 'main-btn';
+            
+            const btn = document.getElementById(`tfx-btn-${i}`);
+            if(btn.classList.contains('active')) toggleRouteTrackFX(i);
+        }
+
+        function toggleAllPlay() {
+            let anyPlaying = trackStates.some(s => s === 'playing' || s === 'overdub');
+            if (anyPlaying) {
+                for(let i=0; i<5; i++) { if (trackStates[i] === 'playing' || trackStates[i] === 'overdub') stopTrack(i, true); }
+                document.getElementById('all-start-stop').classList.remove('active-green');
+            } else {
+                for(let i=0; i<5; i++) { 
+                    if (tracksData[i].length > 0 && trackStates[i] === 'stopped') { 
+                        startPlayback(i); trackStates[i] = 'playing'; document.getElementById(`btn-${i}`).className = 'main-btn playing'; 
+                    } 
+                }
+                document.getElementById('all-start-stop').classList.add('active-green');
+            }
+        }
+
+        function undoRedo() {
+            if(lastRecordedTrack === -1 || trackHistory[lastRecordedTrack].length === 0) return;
+            trackHistory[lastRecordedTrack].pop();
+            let prev = trackHistory[lastRecordedTrack][trackHistory[lastRecordedTrack].length - 1];
+            tracksData[lastRecordedTrack] = prev ? [...prev] : [];
+            if (tracksData[lastRecordedTrack].length > 0) {
+                if(trackStates[lastRecordedTrack] === 'playing') startPlayback(lastRecordedTrack);
+            } else { stopTrack(lastRecordedTrack, true); }
+        }
+
+        /* === RHYTHM & MIXER === */
+        function updateFader(i, val) { if(trackGains[i]) trackGains[i].gain.value = val; }
+        function adjustOutputVolume() { outputVol = outputVol === 1.0 ? 0.5 : 1.0; if(masterGain) masterGain.gain.value = outputVol; }
+
+        let tapTimes = []; let rhythmInterval; let isRhythmPlaying = false; let beatCount = 0;
+        function handleTapTempo() {
+            const now = Date.now(); tapTimes.push(now);
+            if(tapTimes.length > 4) tapTimes.shift();
+            if(tapTimes.length > 1) {
+                let diffs = 0; for(let i=1; i<tapTimes.length; i++) diffs += (tapTimes[i] - tapTimes[i-1]);
+                bpm = 60000 / (diffs / (tapTimes.length - 1));
+                if(bpm > 300) bpm = 300; if(bpm < 40) bpm = 40;
+                if(menuState.category === 'HOME') updateLCD();
+                if(isRhythmPlaying) { toggleRhythm(); setTimeout(toggleRhythm, 50); }
+            }
+        }
+        function playClick(type) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination); 
+            osc.frequency.value = type === 'high' ? 800 : 400;
+            gain.gain.setValueAtTime((sysData.rhyLvl/100)*0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+        async function toggleRhythm() {
+            const btn = document.getElementById('rhythm-btn');
+            if (isRhythmPlaying) { clearInterval(rhythmInterval); isRhythmPlaying = false; btn.classList.remove('active-green'); 
+            } else {
+                beatCount = 0; const intervalMs = (60 / bpm) * 1000; playClick('high'); beatCount++;
+                rhythmInterval = setInterval(() => { if(beatCount % 4 === 0) playClick('high'); else playClick('low'); beatCount++; }, intervalMs);
+                isRhythmPlaying = true; btn.classList.add('active-green');
+            }
+        }
+
+        /* === VISUALIZER === */
+        function drawVisualizer(analyzer) {
+            const canvas = document.getElementById('visualizer'); const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight;
+            const bufferLength = analyzer.frequencyBinCount; const dataArray = new Uint8Array(bufferLength);
+            function draw() {
+                requestAnimationFrame(draw); analyzer.getByteTimeDomainData(dataArray);
+                ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.lineWidth = 2; ctx.strokeStyle = '#66b3ff'; ctx.beginPath();
+                let sliceWidth = canvas.width * 1.0 / bufferLength; let x = 0;
+                for(let i = 0; i < bufferLength; i++) {
+                    let v = dataArray[i] / 128.0; let y = v * canvas.height / 2;
+                    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); x += sliceWidth;
+                }
+                ctx.stroke();
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>
